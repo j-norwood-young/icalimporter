@@ -1,10 +1,9 @@
 {
-  "name": "myopenicsimporter",
+  "name": "icalimporter",
   "version": "0.0.1",
   "description": "Imports ICS to My Open/Maliebaan45 calendars",
   "main": "index.js",
   "dependencies": {
-    "axios": "^0.18.0",
     "config": "^3.0.1",
     "node-ical": "^0.9.1"
   },
