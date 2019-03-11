@@ -1,5 +1,4 @@
 const ical = require('node-ical');
-const axios = require("axios");
 const config = require("config");
 const Apihelper = require("./libs/apihelper");
 
