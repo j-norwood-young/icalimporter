@@ -23,13 +23,14 @@ async function main() {
         for (let room of rooms) {
             var events = await getiCalUrl(room.external_ical);
             for (event in events) {
+                // console.log(events[event]);
                 let data = {
                     start_time: new Date(events[event].start),
                     end_time: new Date(events[event].end),
                     location: events[event].location,
                     title: events[event].attendee.params.CN,
                     description: events[event].description,
-                    external_id: events[event].uid,
+                    external_id: new Date(events[event].created) * 1,
                     room: room._id,
                 }
                 try {
