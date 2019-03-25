@@ -32,6 +32,7 @@ async function main() {
                     description: events[event].description,
                     external_id: new Date(events[event].created) * 1,
                     room: room._id,
+                    hidden: true,
                 }
                 try {
                     let previousQuery = await apihelper.get("booking", { "filter[external_id]": data.external_id });
