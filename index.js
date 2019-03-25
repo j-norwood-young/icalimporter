@@ -19,11 +19,13 @@ function getiCalUrl(url) {
 
 async function main() {
     try {
+        const now = new Date();
         const rooms = await getRooms();
         for (let room of rooms) {
             var events = await getiCalUrl(room.external_ical);
             for (event in events) {
                 // console.log(events[event]);
+                if (new Date(events[event].start).getTime() < now.getTime()) continue;
                 let data = {
                     start_time: new Date(events[event].start),
                     end_time: new Date(events[event].end),
