@@ -1,6 +1,7 @@
 const ical = require('node-ical');
 const config = require("config");
 const Apihelper = require("./libs/apihelper");
+const crypto = require('crypto')
 
 const apihelper = new Apihelper({ apikey: config.apikey });
 
@@ -22,20 +23,29 @@ async function main() {
         const now = new Date();
         const rooms = await getRooms();
         for (let room of rooms) {
+            console.log(`Fetching ${room.external_ical}`);
             var events = await getiCalUrl(room.external_ical);
-            for (event in events) {
+            const ical_source = crypto.createHash('md5').update(room.external_ical).digest("hex");
+            console.log({ ical_source });
+            let previousAppointments = (await apihelper.get("booking", { "filter[ical_source]": ical_source, "filter[start_time]": `$gte:${ new Date().getTime() }` })).data;
+            // Add or update events
+            for (let i in events) {
                 // console.log(events[event]);
-                if (new Date(events[event].start).getTime() < now.getTime()) continue;
+                const event = events[i];
+                const external_id = new Date(event.created) * 1 + "";
+                if (new Date(event.start).getTime() < now.getTime()) continue;
                 let data = {
-                    start_time: new Date(events[event].start),
-                    end_time: new Date(events[event].end),
-                    location: events[event].location,
-                    title: events[event].attendee.params.CN,
-                    description: events[event].description,
-                    external_id: new Date(events[event].created) * 1,
+                    start_time: new Date(event.start),
+                    end_time: new Date(event.end),
+                    location: event.location,
+                    title: event.attendee.params.CN,
+                    description: event.description,
+                    external_id,
                     room: room._id,
                     hidden: true,
+                    ical_source,
                 }
+                // console.log(data);
                 try {
                     let previousQuery = await apihelper.get("booking", { "filter[external_id]": data.external_id });
                     if (previousQuery.count) {
@@ -51,11 +61,20 @@ async function main() {
                     } else {
                         await apihelper.post("booking", data);
                     }
+                    for (let i = 0; i < previousAppointments.length; i++) {
+                        if ( previousAppointments[i].external_id === external_id) {
+                            previousAppointments.splice(i, 1);
+                        }
+                    }
                 } catch(err) {
                     console.error(new Date(), err);
                 }
                 // console.log(data);
             }
+            for (let appointment of previousAppointments) {
+                await apihelper.del("booking", appointment._id);
+            }
+            console.log("Deleted: ", previousAppointments);
         }
     } catch(err) {
         console.error(new Date(), err);
