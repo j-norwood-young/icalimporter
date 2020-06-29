@@ -75,11 +75,11 @@ async function main() {
                 let data = {
                     start_time,
                     end_time,
-                    location: event.location,
+                    location_id: event.location,
                     title: event.attendee.params.CN,
                     description: event.description,
                     external_id,
-                    room: room._id,
+                    room_id: room._id,
                     hidden: true,
                     ical_source,
                 }
